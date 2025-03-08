@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JioHotstar Merger: Sentiment & Pricing Analysis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --secondary: #f59e0b;
+            --accent: #10b981;
+            --warning: #ef4444;
+            --neutral: #6b7280;
+            --light: #f3f4f6;
+            --dark: #1f2937;
+            
+            /* Sentiment colors */
+            --sentiment-very-positive: #10b981;
+            --sentiment-positive: #34d399;
+            --sentiment-slightly-positive: #a7f3d0;
+            --sentiment-neutral: #e5e7eb;
+            --sentiment-slightly-negative: #fca5a5;
+            --sentiment-negative: #f87171;
+            --sentiment-very-negative: #ef4444;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            background-color: #f5f7fa;
+        }
+        
+        h1, h2, h3, h4 {
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        
+        p {
+            margin-bottom: 1rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            position: relative;
+            text-align: center;
+        }
+        
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header-subtitle {
+            font-size: 1.25rem;
+            font-weight: 400;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        nav {
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--primary);
+            padding: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-links {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .nav-link {
+            padding: 1rem;
+            color: var(--neutral);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        section {
+            margin-bottom: 3rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .section-icon {
+            color: var(--primary);
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        
+        .chart {
+            height: 400px;
+            width: 100%;
+            position: relative;
+        }
+        
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .chart-description {
+            font-size: 0.875rem;
+            color: var(--neutral);
+            margin-top: 0.5rem;
+        }
+        
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .grid-2 {
+            grid-template-columns: 1fr;
+        }
+        
+        .grid-3 {
+            grid-template-columns: 1fr;
+        }
+        
+        @media (min-width: 768px) {
+            .grid-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 992px) {
+            .grid-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin: 0;
+        }
+        
+        .info-card {
+            border-left: 4px solid var(--primary);
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+        
+        .warning-card {
+            border-left: 4px solid var(--warning);
+            background-color: rgba(239, 68, 68, 0.05);
+        }
+        
+        .highlight-card {
+            border-left: 4px solid var(--accent);
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+        
+        .phase-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-positive {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--sentiment-very-positive);
+        }
+        
+        .badge-negative {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--sentiment-very-negative);
+        }
+        
+        .badge-neutral {
+            background-color: rgba(107, 114, 128, 0.1);
+            color: var(--neutral);
+        }
+        
+        .quote {
+            font-style: italic;
+            padding: 1rem 1.5rem;
+            background-color: #f9fafb;
+            border-left: 4px solid #d1d5db;
+            margin: 1rem 0;
+            position: relative;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.875rem;
+        }
+        
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+            color: var(--neutral);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        .heatmap-cell {
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        .heatmap-value {
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .heatmap-label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        
+        .very-positive { background-color: var(--sentiment-very-positive); color: white; }
+        .positive { background-color: var(--sentiment-positive); color: white; }
+        .slightly-positive { background-color: var(--sentiment-slightly-positive); color: #333; }
+        .neutral { background-color: var(--sentiment-neutral); color: #333; }
+        .slightly-negative { background-color: var(--sentiment-slightly-negative); color: #333; }
+        .negative { background-color: var(--sentiment-negative); color: white; }
+        .very-negative { background-color: var(--sentiment-very-negative); color: white; }
+        
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-top: 3rem;
+        }
+        
+        .footer-content {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .copyright {
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 2rem;
+            }
+            
+            .header-subtitle {
+                font-size: 1rem;
+            }
+            
+            .chart {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="header-title">JioHotstar Merger: Sentiment & Pricing Analysis</h1>
+            <p class="header-subtitle">A comprehensive analysis of user sentiment and pricing impact based on Reddit data from January 2024 to March 2025</p>
+        </div>
+    </header>
+    
+    <nav>
+        <div class="container nav-container">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i> JioHotstar Insights
+            </div>
+            <div class="nav-links">
+                <a href="#overview" class="nav-link active">Overview</a>
+                <a href="#sentiment-trends" class="nav-link">Sentiment Trends</a>
+                <a href="#pricing-impact" class="nav-link">Pricing Impact</a>
+                <a href="#content-analysis" class="nav-link">Content Analysis</a>
+                <a href="#recommendations" class="nav-link">Recommendations</a>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="container">
+        <section id="overview">
+            <div class="section-title">
+                <i class="fas fa-globe section-icon"></i>
+                <h2>Executive Summary</h2>
+            </div>
+            
+            <div class="card info-card">
+                <p>This analysis examines the impact of the Jio-Hotstar merger on user sentiment and pricing perception based on Reddit data collected from January 2024 to March 2025. The study reveals critical insights into how pricing decisions influenced user attitudes throughout the merger process.</p>
+            </div>
+            
+            <div class="grid grid-3">
+                <div class="card">
+                    <h3><i class="fas fa-chart-line" style="color: var(--primary);"></i> Sentiment Evolution</h3>
+                    <p>Sentiment peaked during the merger announcement (0.62 in January 2025) but declined significantly after launch (-0.08 in February 2025) when users discovered previously free content would require payment.</p>
+                </div>
+                
+                <div class="card">
+                    <h3><i class="fas fa-rupee-sign" style="color: var(--primary);"></i> Pricing Perception</h3>
+                    <p>The psychological shift from free IPL to paid access drove negative sentiment more than the actual price point (₹149/3mo), revealing that the transition strategy matters more than absolute cost.</p>
+                </div>
+                
+                <div class="card">
+                    <h3><i class="fas fa-film" style="color: var(--primary);"></i> Content Value</h3>
+                    <p>Content library discussions remained positive even post-launch, indicating users recognized the enhanced value of combined offerings despite pricing concerns.</p>
+                </div>
+            </div>
+            
+            <div class="chart-container" style="margin-top: 1.5rem;">
+                <h3 class="chart-title">Sentiment Overview (2024-2025)</h3>
+                <div class="chart">
+                    <canvas id="overviewChart"></canvas>
+                </div>
+                <p class="chart-description">
+                    This chart shows the overall sentiment trend from January 2024 to March 2025, highlighting key merger milestone impacts.
+                </p>
+            </div>
+        </section>
+        
+        <section id="sentiment-trends">
+            <div class="section-title">
+                <i class="fas fa-chart-line section-icon"></i>
+                <h2>Sentiment Trends</h2>
+            </div>
+            
+            <div class="grid grid-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Pre-Merger Phase</h3>
+                        <span class="phase-badge badge-neutral">Jan-Nov 2024</span>
+                    </div>
+                    <p>Generally mixed to slightly negative sentiment (-0.22 in January 2024). Users complained about Hotstar losing IPL rights while maintaining same prices.</p>
+                    <div class="quote">
+                        <p>"Hotstar has become a waste after losing IPL. Still charging the same price for less content."</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Announcement Phase</h3>
+                        <span class="phase-badge badge-positive">Dec 2024-Jan 2025</span>
+                    </div>
+                    <p>Highly positive sentiment (peaked at 0.62 in January 2025) as users anticipated getting combined content without price increases.</p>
+                    <div class="quote">
+                        <p>"This merger finally brings all the content I want in one app. ₹499/year is honestly a great deal for what you get."</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Post-Launch Phase</h3>
+                        <span class="phase-badge badge-negative">Feb-Mar 2025</span>
+                    </div>
+                    <p>Sentiment dropped to -0.08 in February and -1.00 in March 2025, primarily due to IPL no longer being free.</p>
+                    <div class="quote">
+                        <p>"Why would I pay ₹149 when JioCinema was giving IPL for free just last year?"</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container" style="margin-top: 1.5rem;">
+                <h3 class="chart-title">Sentiment & Comment Volume Timeline</h3>
+                <div class="chart">
+                    <canvas id="combinedChart"></canvas>
+                </div>
+                <p class="chart-description">
+                    This chart combines overall sentiment (blue line) with topic-specific sentiment (cricket in green, pricing in red) and comment volume (bars) to show engagement peaks.
+                </p>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Sentiment by Subreddit</h3>
+                <div class="chart">
+                    <canvas id="subredditChart"></canvas>
+                </div>
+                <p class="chart-description">
+                    Sentiment varied significantly across different Reddit communities, with sports-focused subreddits showing more negative reactions.
+                </p>
+            </div>
+        </section>
+        
+        <section id="pricing-impact">
+            <div class="section-title">
+                <i class="fas fa-rupee-sign section-icon"></i>
+                <h2>Pricing Impact Analysis</h2>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Pricing Strategy & Sentiment Impact</h3>
+                <div class="chart">
+                    <canvas id="pricingTimelineChart"></canvas>
+                </div>
+                <p class="chart-description">
+                    This timeline highlights how key pricing decisions correlated with sentiment shifts throughout the merger process.
+                </p>
+            </div>
+            
+            <h3 style="margin-top: 1.5rem;">Topic Sentiment Heatmap</h3>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Topic</th>
+                            <th>Pre-Merger<br><span style="font-weight: normal; font-size: 0.8rem;">(Jan-Nov 2024)</span></th>
+                            <th>Merger Announcement<br><span style="font-weight: normal; font-size: 0.8rem;">(Dec 2024-Jan 2025)</span></th>
+                            <th>Post-Launch<br><span style="font-weight: normal; font-size: 0.8rem;">(Feb-Mar 2025)</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Pricing Strategy</strong></td>
+                            <td class="heatmap-cell slightly-negative">
+                                <div class="heatmap-value">-0.43</div>
+                                <div class="heatmap-label">Negative</div>
+                            </td>
+                            <td class="heatmap-cell very-positive">
+                                <div class="heatmap-value">0.84</div>
+                                <div class="heatmap-label">Very Positive</div>
+                            </td>
+                            <td class="heatmap-cell negative">
+                                <div class="heatmap-value">-0.67</div>
+                                <div class="heatmap-label">Negative</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cricket Content</strong></td>
+                            <td class="heatmap-cell slightly-positive">
+                                <div class="heatmap-value">0.06</div>
+                                <div class="heatmap-label">Slightly Positive</div>
+                            </td>
+                            <td class="heatmap-cell very-positive">
+                                <div class="heatmap-value">1.00</div>
+                                <div class="heatmap-label">Very Positive</div>
+                            </td>
+                            <td class="heatmap-cell slightly-negative">
+                                <div class="heatmap-value">-0.20</div>
+                                <div class="heatmap-label">Slightly Negative</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Content Library</strong></td>
+                            <td class="heatmap-cell positive">
+                                <div class="heatmap-value">0.28</div>
+                                <div class="heatmap-label">Positive</div>
+                            </td>
+                            <td class="heatmap-cell very-positive">
+                                <div class="heatmap-value">0.79</div>
+                                <div class="heatmap-label">Very Positive</div>
+                            </td>
+                            <td class="heatmap-cell positive">
+                                <div class="heatmap-value">0.41</div>
+                                <div class="heatmap-label">Positive</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Value Perception</strong></td>
+                            <td class="heatmap-cell slightly-negative">
+                                <div class="heatmap-value">-0.22</div>
+                                <div class="heatmap-label">Slightly Negative</div>
+                            </td>
+                            <td class="heatmap-cell positive">
+                                <div class="heatmap-value">0.56</div>
+                                <div class="heatmap-label">Positive</div>
+                            </td>
+                            <td class="heatmap-cell slightly-negative">
+                                <div class="heatmap-value">-0.18</div>
+                                <div class="heatmap-label">Slightly Negative</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="grid grid-2" style="margin-top: 1.5rem;">
+                <div class="card warning-card">
+                    <h3><i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i> Free-to-Paid Transition Impact</h3>
+                    <p>The psychological shift from free IPL streaming to paid access created stronger negative sentiment than any absolute price point. Users expressed feeling "tricked" by the initial free offering followed by subscription requirements.</p>
+                    <div class="quote">
+                        <p>"If they kept IPL free with ads I wouldn't mind, but forcing subscriptions now feels like a bait and switch."</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 class="chart-title">Pricing Models Comparison</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Plan</th>
+                                <th>JioCinema<br><span style="font-weight: normal; font-size: 0.75rem;">(Pre-merger)</span></th>
+                                <th>JioHotstar<br><span style="font-weight: normal; font-size: 0.75rem;">(Post-merger)</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mobile</td>
+                                <td>Free with ads</td>
+                                <td style="background-color: rgba(37, 99, 235, 0.05);">₹499/year or ₹149/3mo</td>
+                            </tr>
+                            <tr>
+                                <td>Premium</td>
+                                <td>₹999/year (₹83/mo)</td>
+                                <td style="background-color: rgba(37, 99, 235, 0.05);">₹1499/year or ₹299/mo</td>
+                            </tr>
+                            <tr style="background-color: rgba(239, 68, 68, 0.1);">
+                                <td><strong>IPL Access</strong></td>
+                                <td><strong>Free</strong></td>
+                                <td style="background-color: rgba(239, 68, 68, 0.15);"><strong>Paid subscription</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="font-size: 0.875rem; color: var(--neutral); margin-top: 0.5rem;">
+                        The highlighted row shows the critical change from free to paid IPL access that drove significant sentiment shift.
+                    </p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="content-analysis">
+            <div class="section-title">
+                <i class="fas fa-film section-icon"></i>
+                <h2>Content Analysis</h2>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Most Discussed Topics</h3>
+                <div class="chart">
+                    <canvas id="wordCloudChart"></canvas>
+                </div>
+                <p class="chart-description">
+                    Topic distribution chart showing the most frequently mentioned topics in Reddit discussions, with sentiment color coding.
+                </p>
+            </div>
+            
+            <div class="grid grid-2">
+                <div class="card">
+                    <h3 class="chart-title">Platform Capability Comparison</h3>
+                    <div class="chart" style="height: 300px;">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    <p class="chart-description">
+                        Comparison of JioHotstar against Netflix, Prime Video, and SonyLIV across key metrics.
+                    </p>
+                </div>
+                
+                <div class="card">
+                    <h3 class="chart-title">Platform Stats</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Platform</th>
+                                <th>Subscribers (M)</th>
+                                <th>ARPU (₹/mo)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>JioHotstar</td>
+                                <td>38.0</td>
+                                <td>50</td>
+                            </tr>
+                            <tr>
+                                <td>Amazon Prime Video</td>
+                                <td>14.5</td>
+                                <td>125</td>
+                            </tr>
+                            <tr>
+                                <td>Netflix</td>
+                                <td>6.5</td>
+                                <td>199</td>
+                            </tr>
+                            <tr>
+                                <td>SonyLIV</td>
+                                <td>4.2</td>
+                                <td>82</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div style="margin-top: 1.5rem;">
+                        <h4>Key JioHotstar Strengths:</h4>
+                        <ul style="padding-left: 1.5rem;">
+                            <li>Comprehensive cricket rights (IPL, ICC events)</li>
+                            <li>Combined Disney, HBO, NBC content libraries</li>
+                            <li>Multi-tier pricing with affordable entry point</li>
+                            <li>Strong regional language content</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="recommendations">
+            <div class="section-title">
+                <i class="fas fa-lightbulb section-icon"></i>
+                <h2>Strategic Recommendations</h2>
+            </div>
+            
+            <div class="grid grid-3">
+                <div class="card" style="border-left: 4px solid var(--primary); background-color: rgba(37, 99, 235, 0.05);">
+                    <h3><i class="fas fa-bolt" style="color: var(--primary);"></i> Short-Term (3-6 Months)</h3>
+                    <ul style="padding-left: 1.5rem;">
+                        <li>Offer limited-time free viewing windows for select IPL matches</li>
+                        <li>Introduce a lower-cost "IPL-only" seasonal pass</li>
+                        <li>Highlight expanded content library in marketing</li>
+                        <li>Address technical performance issues</li>
+                    </ul>
+                </div>
+                
+                <div class="card" style="border-left: 4px solid var(--accent); background-color: rgba(16, 185, 129, 0.05);">
+                    <h3><i class="fas fa-chart-line" style="color: var(--accent);"></i> Medium-Term (6-12 Months)</h3>
+                    <ul style="padding-left: 1.5rem;">
+                        <li>Gradually phase in ad-supported free tier for select matches</li>
+                        <li>Experiment with Jio telecom service bundling</li>
+                        <li>Introduce loyalty rewards for subscribers</li>
+                        <li>Improve content discovery features</li>
+                    </ul>
+                </div>
+                
+                <div class="card" style="border-left: 4px solid #9C27B0; background-color: rgba(156, 39, 176, 0.05);">
+                    <h3><i class="fas fa-rocket" style="color: #9C27B0;"></i> Long-Term (1-2 Years)</h3>
+                    <ul style="padding-left: 1.5rem;">
+                        <li>Develop content-based dynamic pricing models</li>
+                        <li>Create more flexible sports packages</li>
+                        <li>Add value beyond content (merchandise, experiences)</li>
+                        <li>Invest in exclusive original content</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="chart-container" style="margin-top: 1.5rem;">
+                <h3 class="chart-title">Recommendation Impact Forecast</h3>
+                <div class="chart">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+                <p class="chart-description">
+                    Projected sentiment improvement with implementation of recommended strategies over time.
+                </p>
+            </div>
+            
+            <div class="card highlight-card" style="margin-top: 1.5rem;">
+                <h3><i class="fas fa-bullseye" style="color: var(--accent);"></i> Key Pricing Strategy Takeaway</h3>
+                <p>The data clearly shows that JioHotstar's pricing challenge isn't about the absolute price points (which remain very affordable at ₹149/3mo) but managing the psychological transition from free to paid access for content that was previously available at no cost.</p>
+                <p>Focus on demonstrating increased value rather than justifying price points, and consider selective free content offers to ease the transition.</p>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <h3>JioHotstar Merger: Sentiment Analysis & Pricing Impact</h3>
+                <p>Comprehensive analysis based on Reddit data from January 2024 - March 2025</p>
+                <div class="copyright">
+                    <p>Data sources: Reddit discussions across 6 subreddits | Analysis date: March 8, 2025</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Define common colors
+        const colors = {
+            primary: '#2563eb',
+            secondary: '#f59e0b',
+            accent: '#10b981',
+            warning: '#ef4444',
+            neutral: '#6b7280',
+            blue: '#2196F3',
+            green: '#4CAF50',
+            red: '#F44336',
+            orange: '#FF9800',
+            purple: '#9C27B0',
+            netflixRed: '#E50914',
+            amazonBlue: '#00A8E1',
+            sonyRed: '#A30010'
+        };
+        
+        // Sentiment data
+        const sentimentData = {
+            labels: ['Jan 24', 'Feb 24', 'Mar 24', 'Apr 24', 'May 24', 'Aug 24', 'Sep 24', 'Oct 24', 'Nov 24', 'Dec 24', 'Jan 25', 'Feb 25', 'Mar 25'],
+            overall: [-0.22, 0, 0.04, 0.14, 0, -0.08, 0.14, 0.09, -0.03, 0.50, 0.62, -0.08, -1.00],
+            cricket: [-0.50, 0, 0.57, 0.50, 0, -0.20, -0.33, 0.29, 0, 1.00, 1.00, -0.10, -1.50],
+            price: [-0.50, -0.40, -0.83, 0, 0, -0.10, 0.13, 0.06, -0.20, 0.50, 1.18, -0.35, -2.00],
+            commentCount: [9, 11, 23, 7, 1, 26, 79, 170, 34, 2, 53, 316, 4]
+        };
+        
+        // Subreddit sentiment data
+        const subredditData = {
+            labels: ['IndiaCricket', 'DisneyPlusHotstar', 'JioCinema', 'IndianOTTbestof', 'ipl', 'AskIndia'],
+            values: [0.18, 0.12, 0.06, 0.02, -0.30, -2.00]
+        };
+        
+        // Pricing timeline data
+        const pricingTimelineData = {
+            labels: ['Jan 2023', 'Apr 2023', 'Jul 2023', 'Oct 2023', 'Dec 2024', 'Jan 2025', 'Feb 2025', 'Mar 2025'],
+            values: [0.2, -0.8, -1.2, 0.7, 0.5, 0.62, -0.08, -1.0],
+            events: [
+                'Pre-merger baseline',
+                'IPL moved to JioCinema (free)',
+                'Hotstar lost 12.5M subscribers',
+                'Free World Cup Cricket strategy',
+                'Merger announcement',
+                'Pre-launch optimism',
+                'JioHotstar launch (paid IPL)',
+                'Full pricing impact felt'
+            ]
+        };
+        
+        // Topic data
+        const topicData = {
+            labels: ['hotstar', 'content', 'jiocinema', 'subscription', 'disney', 'free', 'price', 'cricket', 'quality', 'buffer'],
+            values: [205, 110, 106, 56, 77, 48, 45, 43, 39, 35],
+            sentiment: [0.2, 0.3, 0.1, -0.2, 0.1, 0.4, -0.3, 0.2, -0.1, -0.7]
+        };
+        
+        // Radar chart data
+        const radarData = {
+            labels: ['Content Breadth', 'Price Value', 'Sports Coverage', 'Original Content', 'UI/UX Experience', 'Regional Content'],
+            datasets: [
+                {
+                    label: 'JioHotstar',
+                    data: [90, 85, 95, 60, 50, 85],
+                    backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                    borderColor: 'rgba(37, 99, 235, 0.8)',
+                },
+                {
+                    label: 'Netflix',
+                    data: [75, 45, 10, 95, 90, 40],
+                    backgroundColor: 'rgba(229, 9, 20, 0.2)',
+                    borderColor: 'rgba(229, 9, 20, 0.8)',
+                },
+                {
+                    label: 'Prime Video',
+                    data: [70, 80, 40, 75, 75, 65],
+                    backgroundColor: 'rgba(0, 168, 225, 0.2)',
+                    borderColor: 'rgba(0, 168, 225, 0.8)',
+                }
+            ]
+        };
+        
+        // Forecast data
+        const forecastData = {
+            labels: ['Current', '3 Months', '6 Months', '9 Months', '12 Months'],
+            baseline: [-0.08, -0.12, -0.15, -0.10, -0.05],
+            withRecommendations: [-0.08, 0.10, 0.25, 0.40, 0.55]
+        };
+        
+        // Helper function to get colors based on sentiment
+        function getSentimentColor(value, alpha = 1) {
+            if (value > 0.5) return `rgba(16, 185, 129, ${alpha})`;
+            if (value > 0.2) return `rgba(52, 211, 153, ${alpha})`;
+            if (value > 0) return `rgba(167, 243, 208, ${alpha})`;
+            if (value > -0.2) return `rgba(229, 231, 235, ${alpha})`;
+            if (value > -0.5) return `rgba(252, 165, 165, ${alpha})`;
+            if (value > -0.8) return `rgba(248, 113, 113, ${alpha})`;
+            return `rgba(239, 68, 68, ${alpha})`;
+        }
+        
+        // Initialize charts when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Overview chart
+            const overviewCtx = document.getElementById('overviewChart').getContext('2d');
+            new Chart(overviewCtx, {
+                type: 'line',
+                data: {
+                    labels: sentimentData.labels,
+                    datasets: [{
+                        label: 'Overall Sentiment',
+                        data: sentimentData.overall,
+                        borderColor: colors.blue,
+                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        annotation: {
+                            annotations: {
+                                line1: {
+                                    type: 'line',
+                                    xMin: 9,
+                                    xMax: 9,
+                                    borderColor: colors.orange,
+                                    borderWidth: 2,
+                                    borderDash: [5, 5]
+                                },
+                                line2: {
+                                    type: 'line',
+                                    xMin: 11,
+                                    xMax: 11,
+                                    borderColor: colors.orange,
+                                    borderWidth: 2,
+                                    borderDash: [5, 5]
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: -1.5,
+                            max: 1.5,
+                            title: {
+                                display: true,
+                                text: 'Sentiment Score'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Combined sentiment and volume chart
+            const combinedCtx = document.getElementById('combinedChart').getContext('2d');
+            new Chart(combinedCtx, {
+                type: 'bar',
+                data: {
+                    labels: sentimentData.labels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Comment Volume',
+                            data: sentimentData.commentCount,
+                            backgroundColor: 'rgba(107, 114, 128, 0.3)',
+                            borderColor: 'rgba(107, 114, 128, 0.8)',
+                            borderWidth: 1,
+                            order: 1,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Overall Sentiment',
+                            data: sentimentData.overall,
+                            borderColor: colors.blue,
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            order: 0,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Cricket Sentiment',
+                            data: sentimentData.cricket,
+                            borderColor: colors.green,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            order: 0,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Price Sentiment',
+                            data: sentimentData.price,
+                            borderColor: colors.red,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            order: 0,
+                            yAxisID: 'y'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            min: -2.5,
+                            max: 2.5,
+                            title: {
+                                display: true,
+                                text: 'Sentiment Score'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Comment Count'
+                            },
+                            min: 0,
+                            max: 350
+                        }
+                    }
+                }
+            });
+            
+            // Subreddit sentiment chart
+            const subredditCtx = document.getElementById('subredditChart').getContext('2d');
+            new Chart(subredditCtx, {
+                type: 'bar',
+                data: {
+                    labels: subredditData.labels,
+                    datasets: [{
+                        label: 'Sentiment Score',
+                        data: subredditData.values,
+                        backgroundColor: subredditData.values.map(value => getSentimentColor(value, 0.7)),
+                        borderColor: subredditData.values.map(value => getSentimentColor(value, 1)),
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            min: -2.5,
+                            max: 2.5,
+                            title: {
+                                display: true,
+                                text: 'Sentiment Score'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Pricing timeline chart
+            const pricingCtx = document.getElementById('pricingTimelineChart').getContext('2d');
+            new Chart(pricingCtx, {
+                type: 'bar',
+                data: {
+                    labels: pricingTimelineData.labels,
+                    datasets: [{
+                        label: 'Sentiment Impact',
+                        data: pricingTimelineData.values,
+                        backgroundColor: pricingTimelineData.values.map(value => getSentimentColor(value, 0.7)),
+                        borderColor: pricingTimelineData.values.map(value => getSentimentColor(value, 1)),
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    return 'Event: ' + pricingTimelineData.events[context.dataIndex];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: -1.5,
+                            max: 1.5,
+                            title: {
+                                display: true,
+                                text: 'Sentiment Score'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Topic distribution chart (simple horizontal bar chart as wordcloud simulation)
+            const wordCloudCtx = document.getElementById('wordCloudChart').getContext('2d');
+            new Chart(wordCloudCtx, {
+                type: 'bar',
+                data: {
+                    labels: topicData.labels,
+                    datasets: [{
+                        label: 'Mentions',
+                        data: topicData.values,
+                        backgroundColor: topicData.sentiment.map(value => getSentimentColor(value, 0.7)),
+                        borderColor: topicData.sentiment.map(value => getSentimentColor(value, 1)),
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const index = context.dataIndex;
+                                    const sentiment = topicData.sentiment[index];
+                                    let sentimentLabel = '';
+                                    
+                                    if (sentiment > 0.5) sentimentLabel = 'Very Positive';
+                                    else if (sentiment > 0.2) sentimentLabel = 'Positive';
+                                    else if (sentiment > 0) sentimentLabel = 'Slightly Positive';
+                                    else if (sentiment > -0.2) sentimentLabel = 'Neutral';
+                                    else if (sentiment > -0.5) sentimentLabel = 'Negative';
+                                    else sentimentLabel = 'Very Negative';
+                                    
+                                    return `Sentiment: ${sentiment.toFixed(2)} (${sentimentLabel})`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Mention Count'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Radar chart
+            const radarCtx = document.getElementById('radarChart').getContext('2d');
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: radarData.labels,
+                    datasets: radarData.datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    elements: {
+                        line: {
+                            borderWidth: 2
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: {
+                                stepSize: 20
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Forecast chart
+            const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+            new Chart(forecastCtx, {
+                type: 'line',
+                data: {
+                    labels: forecastData.labels,
+                    datasets: [
+                        {
+                            label: 'Baseline (No Changes)',
+                            data: forecastData.baseline,
+                            borderColor: colors.neutral,
+                            backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'With Recommendations',
+                            data: forecastData.withRecommendations,
+                            borderColor: colors.primary,
+                            backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                            borderWidth: 3,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: -0.5,
+                            max: 1,
+                            title: {
+                                display: true,
+                                text: 'Projected Sentiment'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Handle navigation active state
+        document.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                
+                if (window.pageYOffset >= (sectionTop - 200)) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').substring(1) === current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
