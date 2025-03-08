@@ -39,6 +39,7 @@
             color: #333;
             line-height: 1.6;
             background-color: #f5f7fa;
+            position: relative;
         }
         
         h1, h2, h3, h4 {
@@ -323,6 +324,8 @@
             padding: 2rem 0;
             text-align: center;
             margin-top: 3rem;
+            position: relative;
+            z-index: 1;
         }
         
         .footer-content {
@@ -348,6 +351,265 @@
             .chart {
                 height: 300px;
             }
+        }
+
+        /* Chatbot styles */
+        .chat-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s, background 0.3s;
+            z-index: 1000;
+        }
+        
+        .chat-toggle:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+        
+        .chat-toggle i {
+            font-size: 24px;
+        }
+        
+        .chat-container {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 360px;
+            height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 999;
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+        
+        .chat-container.active {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .chat-header {
+            padding: 1rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .chat-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            color: white;
+        }
+        
+        .chat-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .chat-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .messages-container {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background-color: #f5f7fa;
+        }
+        
+        .message-wrapper {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+        }
+        
+        .user-message {
+            align-self: flex-end;
+        }
+        
+        .bot-message {
+            align-self: flex-start;
+        }
+        
+        .message {
+            padding: 0.8rem 1rem;
+            border-radius: 18px;
+            position: relative;
+            line-height: 1.5;
+            font-size: 0.9rem;
+            word-wrap: break-word;
+        }
+        
+        .user-message .message {
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .bot-message .message {
+            background: white;
+            color: var(--dark);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            background: white;
+            width: fit-content;
+            padding: 0.8rem 1rem;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background: var(--neutral);
+            display: block;
+            border-radius: 50%;
+            margin: 0 2px;
+            opacity: 0.4;
+        }
+        
+        .typing-indicator span:nth-child(1) {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation: pulse 1.5s infinite ease-in-out 0.3s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation: pulse 1.5s infinite ease-in-out 0.6s;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        
+        .chat-input-container {
+            padding: 0.8rem;
+            background: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+        
+        .chat-input {
+            flex: 1;
+            border: 1px solid #e5e7eb;
+            border-radius: 24px;
+            padding: 0.8rem 1rem;
+            background: white;
+            font-size: 0.9rem;
+            color: var(--dark);
+            transition: border-color 0.3s;
+            outline: none;
+            resize: none;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        
+        .chat-input:focus {
+            border-color: var(--primary);
+        }
+        
+        .send-button {
+            background: var(--accent);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-left: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, background 0.3s;
+        }
+        
+        .send-button:hover {
+            background: #0E9F6E;
+        }
+        
+        .send-button:active {
+            transform: scale(0.95);
+        }
+        
+        .send-button:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+        }
+
+        .markdown-content {
+            white-space: pre-wrap;
+        }
+
+        .markdown-content em {
+            font-style: italic;
+        }
+
+        .markdown-content strong {
+            font-weight: bold;
+        }
+
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            font-weight: bold;
+            margin: 8px 0;
+        }
+
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 20px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+
+        .markdown-content code {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 2px 4px;
+            border-radius: 3px;
         }
     </style>
 </head>
@@ -753,7 +1015,33 @@
         </div>
     </footer>
     
+    <!-- Chatbot Interface -->
+    <div class="chat-toggle" id="chatToggle">
+        <i class="fas fa-comments"></i>
+    </div>
+    
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            <h3><i class="fas fa-robot"></i> JioHotstar Analysis Assistant</h3>
+            <button class="chat-close" id="chatClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="messages-container" id="messagesContainer">
+            <!-- Messages will appear here -->
+        </div>
+        
+        <div class="chat-input-container">
+            <textarea class="chat-input" id="chatInput" placeholder="Ask about the JioHotstar analysis..." rows="1"></textarea>
+            <button class="send-button" id="sendButton" disabled>
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+    
     <script>
+        // Chart configurations and data
         // Define common colors
         const colors = {
             primary: '#2563eb',
@@ -1239,6 +1527,195 @@
                 }
             });
         });
+
+        // Chatbot functionality
+        const API_KEY = 'AIzaSyA8R_U1pHmh78Qs3q1PWbAJF_qTgsDFGBc';
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+
+        // Knowledge base for the JioHotstar analysis
+        const KNOWLEDGE_BASE = `
+You are an AI assistant specialized in the JioHotstar merger analysis. You help explain the sentiment and pricing impact analysis based on Reddit data from January 2024 to March 2025.
+
+Key findings:
+- Sentiment peaked during merger announcement (0.62 in Jan 2025) but declined significantly after launch (-0.08 in Feb 2025)
+- The psychological shift from free IPL to paid access (₹149/3mo) drove negative sentiment more than the actual price
+- Content library discussions remained positive even post-launch, showing users recognized the value
+- Cricket-related sentiment showed the most dramatic shift (from 1.00 to -0.10) post-launch
+
+Timeline:
+- Pre-Merger (Jan-Nov 2024): Mixed to negative sentiment (-0.22), users complained about Hotstar losing IPL rights
+- Announcement (Dec 2024-Jan 2025): Very positive sentiment (0.62) as users anticipated combined content library
+- Post-Launch (Feb-Mar 2025): Negative sentiment (-0.08 to -1.00) primarily due to IPL no longer being free
+
+Pricing Models:
+- JioCinema (Pre-merger): Free with ads for Mobile, ₹999/year for Premium, IPL was FREE
+- JioHotstar (Post-merger): ₹499/year or ₹149/3mo for Mobile, ₹1499/year for Premium, IPL requires PAID subscription
+
+JioHotstar's pricing challenge isn't about absolute price points but managing the psychological transition from free to paid access.
+
+Key recommendations:
+1. Short-term (3-6 months): Offer limited-time free viewing for select IPL matches, introduce IPL-only passes
+2. Medium-term (6-12 months): Add ad-supported free tier for select matches, experiment with telecom bundling
+3. Long-term (1-2 years): Develop content-based dynamic pricing, create more flexible sports packages
+
+Platform stats:
+- JioHotstar: 38M subscribers, ₹50 ARPU
+- Amazon Prime Video: 14.5M subscribers, ₹125 ARPU
+- Netflix: 6.5M subscribers, ₹199 ARPU
+- SonyLIV: 4.2M subscribers, ₹82 ARPU
+
+Please provide concise, accurate answers based on this data. If asked for information not in the knowledge base, politely explain that you can only answer questions related to the JioHotstar merger analysis from Jan 2024 to Mar 2025.
+`;
+
+        // Chat elements
+        const chatToggle = document.getElementById('chatToggle');
+        const chatContainer = document.getElementById('chatContainer');
+        const chatClose = document.getElementById('chatClose');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
+        
+        // Chat state
+        let isWaitingForResponse = false;
+        
+        // Toggle chat
+        chatToggle.addEventListener('click', () => {
+            chatContainer.classList.add('active');
+            
+            // Add welcome message if container is empty
+            if (messagesContainer.children.length === 0) {
+                addMessage('bot', "Hello! I'm your JioHotstar analysis assistant. How can I help you understand the merger analysis?");
+            }
+            
+            chatInput.focus();
+        });
+        
+        // Close chat
+        chatClose.addEventListener('click', () => {
+            chatContainer.classList.remove('active');
+        });
+        
+        // Handle chat input
+        chatInput.addEventListener('input', () => {
+            // Auto-resize textarea
+            chatInput.style.height = 'auto';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
+            
+            // Enable/disable send button
+            sendButton.disabled = chatInput.value.trim() === '';
+        });
+        
+        // Send on Enter
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (chatInput.value.trim() !== '' && !isWaitingForResponse) {
+                    sendMessage();
+                }
+            }
+        });
+        
+        // Send button click
+        sendButton.addEventListener('click', () => {
+            if (chatInput.value.trim() !== '' && !isWaitingForResponse) {
+                sendMessage();
+            }
+        });
+        
+        // Add message to the chat
+        function addMessage(type, text) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.classList.add('message-wrapper', `${type}-message`);
+            
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            
+            if (type === 'bot') {
+                messageElement.classList.add('markdown-content');
+                messageElement.innerHTML = text.replace(/\n/g, '<br>');
+            } else {
+                messageElement.textContent = text;
+            }
+            
+            messageWrapper.appendChild(messageElement);
+            messagesContainer.appendChild(messageWrapper);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Show typing indicator
+        function showTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.id = 'typing-indicator';
+            indicator.classList.add('typing-indicator');
+            indicator.innerHTML = `<span></span><span></span><span></span>`;
+            messagesContainer.appendChild(indicator);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Remove typing indicator
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+        
+        // Send message to the AI
+        async function sendMessage() {
+            const userMessage = chatInput.value.trim();
+            
+            // Reset input
+            addMessage('user', userMessage);
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            sendButton.disabled = true;
+            
+            isWaitingForResponse = true;
+            showTypingIndicator();
+            
+            try {
+                const payload = {
+                    contents: [
+                        {
+                            parts: [
+                                {
+                                    text: KNOWLEDGE_BASE + "\n\nUser: " + userMessage
+                                }
+                            ]
+                        }
+                    ]
+                };
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                removeTypingIndicator();
+                
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                    const botReply = data.candidates[0].content.parts[0].text;
+                    addMessage('bot', botReply);
+                } else {
+                    addMessage('bot', "I'm sorry, I couldn't process your request. Please try again.");
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                removeTypingIndicator();
+                addMessage('bot', "I'm sorry, there was an error processing your request. Please try again later.");
+            } finally {
+                isWaitingForResponse = false;
+                sendButton.disabled = chatInput.value.trim() === '';
+                chatInput.focus();
+            }
+        }
     </script>
 </body>
 </html>
